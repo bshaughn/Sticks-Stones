@@ -122,7 +122,7 @@ class board:
 			print "" 
 
 #b = board(8,10) #official board size
-b = board(10,15) #official board size
+b = board(21,23) #official board size
 
 horiSticks = [[] for x in range((b.length)*(b.width-1))]
 vertSticks = [[] for x in range((b.width)*(b.length-1))]
