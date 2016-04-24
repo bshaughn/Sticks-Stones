@@ -65,42 +65,32 @@ class board:
 			for x in range(0, self.width-1):
 				stoneId = x+(y*self.width)
 				
-				if self.boxes[stoneId] != 4 and self.boxIsFree(stoneId):
-					boxSides = []
-					missingSides = []
+				if self.boxIsFree(stoneId):
+					boxSides = 0
 
 					rightId = stoneId+1
 					lowerId = stoneId+self.width
 					lowerRightId = stoneId+self.width+1
 
-					connectedBelow = True if (len(self.adjList[lowerId])>=1 and stoneId in self.adjList[lowerId]) else False
-					connectedRight = True if (len(self.adjList[rightId])>=1 and stoneId in self.adjList[rightId]) else False
-					connectedLowerRightToBelow = True if (len(self.adjList[lowerRightId])>=1 and lowerId in self.adjList[lowerRightId]) else False
-					connectedLowerRightToRight = True if (len(self.adjList[lowerRightId])>=1 and rightId in self.adjList[lowerRightId]) else False
+					# connectedBelow
+					if len(self.adjList[lowerId])>=1 and stoneId in self.adjList[lowerId]:
+						boxSides += 1
 
-					if connectedBelow:
-						boxSides.append([lowerId, stoneId])
-					else:
-						missingSides.append([lowerId, stoneId])
+					# connectedRight
+					if len(self.adjList[rightId])>=1 and stoneId in self.adjList[rightId]:
+						boxSides += 1
 
-					if connectedRight:
-						boxSides.append([rightId, stoneId])
-					else:
-						missingSides.append([rightId, stoneId])
+					# connectedLowerRightToBelow
+					if len(self.adjList[lowerRightId])>=1 and lowerId in self.adjList[lowerRightId]:
+						boxSides += 1
 
-					if connectedLowerRightToBelow:
-						boxSides.append([lowerId, lowerRightId])
-					else:
-						missingSides.append([lowerId, lowerRightId])
+					# connectedLowerRightToRight
+					if len(self.adjList[lowerRightId])>=1 and rightId in self.adjList[lowerRightId]:
+						boxSides += 1
 
-					if connectedLowerRightToRight:
-						boxSides.append([rightId, lowerRightId])
-					else:
-						missingSides.append([rightId, lowerRightId])
+					self.boxes[stoneId] = boxSides
 
-					self.boxes[stoneId] = len(boxSides)
-
-					if len(boxSides) == 4:
+					if boxSides == 4:
 						self.activePlayer.boxes.append(stoneId)
 						return self.lookForBoxes()
 
@@ -111,7 +101,7 @@ class board:
 			for x in range(0,self.width-1):
 				sideCount = self.boxes[x+y*self.width]
 				if sideCount == 4:
-					for p in b.players:
+					for p in self.players:
 						if x+y*self.width in p.boxes:
 							print p.name,
 				else:
@@ -121,62 +111,111 @@ class board:
 
 			print "" 
 
-#b = board(8,10) #official board size
-b = board(21,23) #official board size
+class game:
+	def __init__(self):
 
-horiSticks = [[] for x in range((b.length)*(b.width-1))]
-vertSticks = [[] for x in range((b.width)*(b.length-1))]
+		#b = board(8,10) #official board size
+		self.b = board(10,8) #official board size
+		self.maxBoxes = (self.b.length-1)*(self.b.width-1)
+		print "Number of possible boxes: ", self.maxBoxes
+		self.winningTotal = 0
+		self.play()
 
-for y in range(b.length-1):
-	for x in range(b.width):
-		vertSticks[x+y*b.width] = [x+y*b.width, x+y*b.width+b.width] 
+	def play(self):
+		horiSticks = [[] for x in range((self.b.length)*(self.b.width-1))]
+		vertSticks = [[] for x in range((self.b.width)*(self.b.length-1))]
 
-i = 0 # this is terrible
-for y in range(b.length):
-	for x in range(b.width-1):
-		horiSticks[i] = [y*b.width+x, y*b.width+x+1]
-		i += 1
+		for y in range(self.b.length-1):
+			for x in range(self.b.width):
+				vertSticks[x+y*self.b.width] = [x+y*self.b.width, x+y*self.b.width+self.b.width] 
 
-sticks = [horiSticks, vertSticks] #this is really terrible
+		i = 0 # this is terrible
+		for y in range(self.b.length):
+			for x in range(self.b.width-1):
+				horiSticks[i] = [y*self.b.width+x, y*self.b.width+x+1]
+				i += 1
 
-player_A = player("A")
-player_B = player("B")
+		sticks = [horiSticks, vertSticks] #this is really terrible
 
-b.players.append(player_A)
-b.players.append(player_B)
+		player_A = player("A")
+		player_B = player("B")
+		player_C = player("C")
+		player_D = player("D")
+		player_E = player("E")
+		player_F = player("F")
+		player_G = player("G")
+		player_H = player("H")
+		player_I = player("I")
+		player_J = player("J")
+		player_K = player("K")
 
-activePlayerIndex = 1
-b.activePlayer = b.players[activePlayerIndex]
+		self.b.players.append(player_A)
+		self.b.players.append(player_B)
+		self.b.players.append(player_C)
+		self.b.players.append(player_D)
+		self.b.players.append(player_E)
+		self.b.players.append(player_F)
+		self.b.players.append(player_G)
+		self.b.players.append(player_H)
+		self.b.players.append(player_I)
+		self.b.players.append(player_J)
+		self.b.players.append(player_K)
 
-#================================ Game Loop ==============================================
+		activePlayerIndex = 1
+		self.b.activePlayer = self.b.players[activePlayerIndex]
 
-while b.sticksRemaining > 0:
-	choosingStick = True
-	while choosingStick:
-		h_or_v = random.randrange(0, len(sticks))
-		stick = random.randrange(0, len(sticks[h_or_v]))
+		#================================ Game Loop ==============================================
 
-		if len(sticks[h_or_v][stick])>0:
-			choosingStick = False
+		while self.b.sticksRemaining > 0:
+			choosingStick = True
+			while choosingStick:
+				h_or_v = random.randrange(0, len(sticks))
+				stick = random.randrange(0, len(sticks[h_or_v]))
 
-	s1 = sticks[h_or_v][stick][0]
-	s2 = sticks[h_or_v][stick][1]
+				if len(sticks[h_or_v][stick])>0:
+					choosingStick = False
 
-	foundBox = b.connectStones(s1, s2)
+			s1 = sticks[h_or_v][stick][0]
+			s2 = sticks[h_or_v][stick][1]
 
-	activePlayerIndex = (activePlayerIndex+1)%len(b.players)
-	b.activePlayer = b.players[activePlayerIndex]
+			foundBox = self.b.connectStones(s1, s2)
 
-	sticks[h_or_v][stick] = []
+			activePlayerIndex = (activePlayerIndex+1)%len(self.b.players)
+			self.b.activePlayer = self.b.players[activePlayerIndex]
 
-	#b.printBoard()
+			sticks[h_or_v][stick] = []
 
-maxBoxes = 0
-winner = None
-for p in range(0,len(b.players)):
-	if len(b.players[p].boxes) > maxBoxes:
-		maxBoxes = len(b.players[p].boxes)
-		winner = b.players[p]
+			#b.printBoard()
 
-print winner.name, " is the winner with ", maxBoxes, " boxes!"
-b.printBoard()
+		#maxBoxes = 0
+		winner = None
+		for p in range(0,len(self.b.players)):
+			if len(self.b.players[p].boxes) > self.winningTotal:
+				#maxBoxes = len(self.b.players[p].boxes)
+				self.winningTotal = len(self.b.players[p].boxes)
+				winner = self.b.players[p]
+
+		print winner.name, " is the winner with ", self.winningTotal, " boxes!"
+		self.b.printBoard()
+
+
+avg = 0
+max = 0
+min = 100000
+for x in range(1, 100001):
+	g = game()
+	if g.winningTotal > max:
+		max = g.winningTotal
+	if g.winningTotal < min:
+		min = g.winningTotal
+
+	avg += g.winningTotal
+	print "x: ", x
+	print "g.winningTotal: ", g.winningTotal
+avg /= x
+
+print "max: ", max
+print "min: ", min
+print "avg: ", avg
+
+
